@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Nathan Reichert ~ CSCI200 ~ Homework Assignment #1 ~ Let's Make A Deal!</title>
+		<script type="text/javascript" src="http://balance3e.com/random.js"></script>
+		<script type="text/javascript">
+			var DOOR1 = 0; var DOOR2 = 1; var DOOR3 = 2; // Assign symbolic identifiers to door number constants. 
+			var state = 0; // Initialize the state variable. The simulation goes (for each click respectively) 
+					   // from state == 0, to state == 1, to state == 2, then back to state == 0. 
+			var winning_door = RandomInt(0,2); // Initialize the winning door variable. 
+					   // Also place this statement in your reset() function which is called when any door is clicked in state == 2.
+			var stay=0; var sweetch=0; var stayWin=0; var sweetchWin=0; // Initializes counter values of variables for keeping track of stays, switches, and wins for each.
+			var picked1=0; var picked2=0; // Establishes variables which can have their values manipulated for each click_action() for figuring out whether or not user stays or switches
+			var donkeyDoor; // Sets door to be revealed during state 0
+			function click_action(pickedDoor){
+			// Assumes: User picks one of three doors attempting to choose the winning door
+			// Results: Displays the randomized results, keeping track of games stayed and switched, as well as won and lost for each
+				if (state==0){ // If in state zero
+                if (winning_door==pickedDoor){ // if winning door is picked
+                    donkeyDoor = (pickedDoor+RandomInt(1,2))%3; // Choose to reveal one of two remaining donkey doors at random
+                } else if (winning_door==0&&pickedDoor==1 || winning_door==1&&pickedDoor==0){ // If winning door is not picked, but isn't door 3
+                  	donkeyDoor = DOOR3; // assigns donkey to door 3
+                } else if (winning_door==0&&pickedDoor==2 || winning_door==2&&pickedDoor==0){ // If winning door is not picked, but is not door 2
+                    donkeyDoor = DOOR2; // assigns donkey to door 2
+                } else if (winning_door==1&&pickedDoor==2 || winning_door==2&&pickedDoor==1){ // If winning door is not picked, but is not door 1
+                    donkeyDoor = DOOR1; // assigns donkey to door 1
+                }
+                document.getElementById('door'+ donkeyDoor +'Img').src="http://web.stcloudstate.edu/aanda/cs200/LMaD_images/donkey.gif"; // If winning door is not picked, reveal only other door possible
+                document.getElementById('resultDiv').innerHTML=
+                '<p>You chose door '+(pickedDoor+1)+'. Click again to stay, or click remaining door to switch.</p>'; // notifies user of their choice and options
+                picked1=pickedDoor; // Assigns value to variable of first door picked for comparison to second door picked in state 1
+                state=1; //Raises the state variable to one
+            	}
+				else if (state==1){
+					if (pickedDoor!=donkeyDoor){
+						if (winning_door==pickedDoor && pickedDoor==picked1){ // If picked door is both winning door, AND same as first picked
+							stay++; // adds one to the stay game total
+							stayWin++; // adds one to the stay win total
+							document.getElementById('resultDiv').innerHTML=
+							'<p>You chose door '+(pickedDoor+1)+'. YOU HAVE WON BY KEEPING YOUR FIRST PICK!! Click any door to play again.</p>'; // notifies user of their results and options
+						} else if (winning_door==pickedDoor && pickedDoor!=picked1){ // If picked door is winner, but not same as their first picked
+					 		sweetch++; // adds one to the switch game total
+					 		sweetchWin++; // adds one to the switch win total
+					 		document.getElementById('resultDiv').innerHTML=
+						 	'<p>You chose door '+(pickedDoor+1)+'. YOU HAVE WON BY SWITCHING YOUR PICK!! Click any door to play again.</p>'; // notifies user of their results and options
+						} else if (winning_door!=pickedDoor && pickedDoor==picked1){ // If picked door is not winner, but picked door is same as first pick
+					 		stay++; // adds one to the stay game total, but not win total due to losing the gam
+					 		document.getElementById('resultDiv').innerHTML=
+					 	    '<p>You chose door '+(pickedDoor+1)+'. You have lost by keeping your first pick. Click any door to play again.</p>'; // notifies user of their results and options
+					 	} else if (winning_door!=pickedDoor && pickedDoor!=picked1){ // If picked door is not winner, and picked door is not same as first pick
+					 		sweetch++; // adds one to switch game total, but not win total due to losing the game
+					 		document.getElementById('resultDiv').innerHTML=
+					 	    '<p>You chose door '+(pickedDoor+1)+'. You have lost by switching your pick. Click any door to play again.</p>'; // notifies user of their results and options
+					 	}
+					state=2; // Raises the state variable to two
+					document.getElementById('door'+winning_door+'Img').src="http://web.stcloudstate.edu/aanda/cs200/LMaD_images/prizemoney.gif" // Prize door will always be revealed during this state
+					document.getElementById('door'+((parseFloat(winning_door)+2)%3)+'Img').src="http://web.stcloudstate.edu/aanda/cs200/LMaD_images/donkey.gif"; // and reveal the remaning 
+					document.getElementById('door'+((parseFloat(winning_door)+1)%3)+'Img').src="http://web.stcloudstate.edu/aanda/cs200/LMaD_images/donkey.gif"; // donkey doors
+					document.getElementById('scoreDiv').innerHTML='<p>In '+sweetch+' games in which you have switched, you have won '+sweetchWin+' times for a success rate of '+Math.round(((sweetchWin/sweetch)*100))+'%</p>' // calculates and displays switch games, victories, and %
+					+'<p>In '+stay+' games in which you haven\'t switched, you have won '+stayWin+' times for a success rate of '+Math.round(((stayWin/stay)*100))+'%</p>'; // calculates and displays stay games, victories, and %
+					}
+				}
+				else if (state==2){
+					state=0; // Sets state variable back to zero
+					reset(); // Calls reset function defined below
+				}
+			}
+			function reset(){
+			// Assumes: Program is in state 2, therefore results have been calculated and displayed and the game is over.
+			// Results: Resets the images to default and generates new winning door for next game.
+			
+				document.getElementById('door0Img').src="http://web.stcloudstate.edu/aanda/cs200/LMaD_images/door1.gif"; // Respectively resets
+				document.getElementById('door1Img').src="http://web.stcloudstate.edu/aanda/cs200/LMaD_images/door2.gif"; // each image to default
+				document.getElementById('door2Img').src="http://web.stcloudstate.edu/aanda/cs200/LMaD_images/door3.gif"; // in preparation for new game
+				document.getElementById('resultDiv').innerHTML=
+				'<p>Pick a door.</p>'; // resets the resultDiv
+				winning_door = RandomInt(0,2); // Generates new winning door for next game
+			}
+		</script> 
+	</head>
+	<body>
+		<h1><center>Nathan Reichert ~ CSCI200 ~ Homework Assignment #1 ~ Let's Make A Deal!</center></h1>
+		<br>
+		<hr>
+			<div style="text-align:center"> 
+				<img id="door0Img" border=1 src="http://web.stcloudstate.edu/aanda/cs200/LMaD_images/door1.gif" alt="Door 1 image" 
+					onclick="click_action(DOOR1);"> 
+				<img id="door1Img" border=1 src="http://web.stcloudstate.edu/aanda/cs200/LMaD_images/door2.gif" alt="Door 2 image" 
+					onclick="click_action(DOOR2);"> 
+				<img id="door2Img" border=1 src="http://web.stcloudstate.edu/aanda/cs200/LMaD_images/door3.gif" alt="Door 3 image" 
+					onclick="click_action(DOOR3);"> 
+			</div>
+		<hr>
+		<br>
+			<div id="resultDiv"><p>Pick a door.</p></div>
+		<br>
+			<div id="scoreDiv"></div>
+	</body>
+</html>	
+					
+					
+					
+				
+					
